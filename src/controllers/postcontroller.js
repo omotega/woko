@@ -1,10 +1,24 @@
 const Post = require('../models/postmodel');
 const User = require('../models/usermodel');
-const postservices = require('../services/postservices');
 
 const getAllPost = async (req, res) => {
   const allpost = await Post.find({});
-  res.status(200).json(allpost);
+  if (allpost) {
+    res.status(200).json(allpost);
+  } else {
+    res.status(400);
+    throw new Error('could not get all posts');
+  }
+};
+
+const getPosts = async (req, res) => {
+  const posts = await Post.find({ user: req.user.id });
+  if (posts) {
+    res.status(200).json(posts);
+  } else {
+    res.status(400);
+    throw new Error('could not get posts');
+  }
 };
 
 const createPost = async (req, res) => {
@@ -16,7 +30,7 @@ const createPost = async (req, res) => {
   const newPost = await Post.create({
     title: req.body.title,
     content: req.body.content,
-    // postedby: req.postedby.username,
+    // postedby: req.user.username,
     user: req.user.id,
   });
   res.status(201).json(newPost);
@@ -66,7 +80,7 @@ const deletePost = async (req, res) => {
 
 module.exports = {
   getAllPost,
-  // getApost,
+  getPosts,
   createPost,
   updatePost,
   deletePost,

@@ -2,7 +2,14 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/usermodel');
 
+const { registerValidation, loginValidation } = require('../validation/uservalidation');
+
 const register = async (req, res) => {
+  const { error } = registerValidation.validate(req.body);
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
   const {
     firstname, lastname, email, username, password, role,
   } = req.body;
@@ -35,6 +42,11 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
+  const { error } = loginValidation.validate(req.body);
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
   const { email, username, password } = req.body;
   if (!email || !username || !password) {
     res.status(400);
@@ -50,16 +62,13 @@ const login = async (req, res) => {
       {
         id: user.id,
         email: user.email,
+        username: user.username,
         password: user.password,
         role: user.role,
       },
       process.env.JWT_SECRET,
       { expiresIn: '30d' },
     );
-    res.cookie('jwt', token, {
-      httpOnly: true,
-      duration: '2d',
-    });
     res.status(200).json({
       _id: user.id,
       username: user.username,
